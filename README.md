@@ -36,14 +36,6 @@ ChartGuard-VLM 是一个面向图表问答的可验证多模态大模型项目�
 
 ## 环境准备
 
-服务器上使用已有 conda 环境：
-
-```bash
-conda activate zjw
-cd /root/LH/ChartGuard-VLM
-export PYTHONPATH=$PWD/src
-```
-
 核心依赖包括：
 
 ```bash
