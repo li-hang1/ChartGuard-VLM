@@ -1,0 +1,10 @@
+accelerate
+bitsandbytes
+datasets
+huggingface_hub
+json-repair
+peft
+pillow
+qwen-vl-utils
+torch
+transformers>=4.57.0
