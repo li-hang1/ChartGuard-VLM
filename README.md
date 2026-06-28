@@ -53,15 +53,13 @@ pip install -U gradio
 单张 RTX 3090 上建议先使用较小模型验证流程：
 
 ```bash
-hf download Qwen/Qwen2.5-VL-3B-Instruct \
-  --local-dir /root/LH/models/Qwen2.5-VL-3B-Instruct
+hf download Qwen/Qwen2.5-VL-3B-Instruct --local-dir /root/code/models/Qwen2.5-VL-3B-Instruct
 ```
 
 如果磁盘空间和 Transformers 版本满足要求，可以使用 Qwen3-VL-4B：
 
 ```bash
-hf download Qwen/Qwen3-VL-4B-Instruct \
-  --local-dir /root/LH/models/Qwen3-VL-4B-Instruct
+hf download Qwen/Qwen3-VL-4B-Instruct --local-dir /root/code/models/Qwen3-VL-4B-Instruct
 ```
 
 ## 不加载模型的 smoke test
@@ -87,7 +85,7 @@ python scripts/run_baseline.py \
 ```bash
 python scripts/run_baseline.py \
   --backend qwen \
-  --model-path /root/LH/models/Qwen3-VL-4B-Instruct \
+  --model-path ./models/Qwen3-VL-4B-Instruct \
   --image examples/revenue_bar.png \
   --question "Which quarter has the highest revenue and how much is it?" \
   --max-new-tokens 512 \
@@ -216,7 +214,7 @@ parquet
 python scripts/evaluate_chartqa.py \
   --manifest data/chartqa_eval/test_32.jsonl \
   --backend qwen \
-  --model-path /root/LH/models/Qwen3-VL-4B-Instruct \
+  --model-path ./models/Qwen3-VL-4B-Instruct \
   --output outputs/chartqa_eval/qwen3vl_4b_test32.jsonl \
   --summary-output outputs/chartqa_eval/qwen3vl_4b_test32_summary.json \
   --limit 32 \
@@ -229,7 +227,7 @@ python scripts/evaluate_chartqa.py \
 python scripts/evaluate_chartqa.py \
   --manifest data/chartqa_eval/test_2500.jsonl \
   --backend qwen \
-  --model-path /root/LH/models/Qwen3-VL-4B-Instruct \
+  --model-path ./models/Qwen3-VL-4B-Instruct \
   --output outputs/chartqa_eval/qwen3vl_2500.jsonl \
   --summary-output outputs/chartqa_eval/qwen3vl_2500_summary.json \
   --retries 1
@@ -308,8 +306,7 @@ data/synthetic_sft/summary.json
 先保留一份原始模型：
 
 ```bash
-cp -al /root/LH/models/Qwen3-VL-4B-Instruct \
-  /root/LH/models/Qwen3-VL-4B-Instruct-original
+cp -al ./models/Qwen3-VL-4B-Instruct ./models/Qwen3-VL-4B-Instruct-original
 ```
 
 这里使用 hardlink 方式备份，节省磁盘空间。训练只读这个目录，不会覆盖原始模型权重。
@@ -318,10 +315,10 @@ cp -al /root/LH/models/Qwen3-VL-4B-Instruct \
 
 ```bash
 python scripts/train_qlora.py \
-  --model-path /root/LH/models/Qwen3-VL-4B-Instruct-original \
+  --model-path ./models/Qwen3-VL-4B-Instruct-original \
   --train-jsonl data/synthetic_sft/train.jsonl \
   --val-jsonl data/synthetic_sft/val.jsonl \
-  --output-dir /root/LH/models/ChartGuard-Qwen3VL-4B-QLoRA-smoke \
+  --output-dir ./models/ChartGuard-Qwen3VL-4B-QLoRA-smoke \
   --max-train-samples 2 \
   --max-val-samples 1 \
   --max-steps 1 \
@@ -333,10 +330,10 @@ python scripts/train_qlora.py \
 
 ```bash
 python scripts/train_qlora.py \
-  --model-path /root/LH/models/Qwen3-VL-4B-Instruct-original \
+  --model-path ./models/Qwen3-VL-4B-Instruct-original \
   --train-jsonl data/synthetic_sft/train.jsonl \
   --val-jsonl data/synthetic_sft/val.jsonl \
-  --output-dir /root/LH/models/ChartGuard-Qwen3VL-4B-QLoRA \
+  --output-dir ./models/ChartGuard-Qwen3VL-4B-QLoRA \
   --num-train-epochs 1 \
   --gradient-accumulation-steps 8 \
   --learning-rate 2e-4
@@ -345,9 +342,9 @@ python scripts/train_qlora.py \
 训练输出目录保存的是 LoRA adapter 和 processor/tokenizer 文件，不是合并后的完整模型：
 
 ```text
-/root/LH/models/ChartGuard-Qwen3VL-4B-QLoRA/adapter_model.safetensors
-/root/LH/models/ChartGuard-Qwen3VL-4B-QLoRA/adapter_config.json
-/root/LH/models/ChartGuard-Qwen3VL-4B-QLoRA/chartguard_training_config.json
+./models/ChartGuard-Qwen3VL-4B-QLoRA/adapter_model.safetensors
+./models/ChartGuard-Qwen3VL-4B-QLoRA/adapter_config.json
+./models/ChartGuard-Qwen3VL-4B-QLoRA/chartguard_training_config.json
 ```
 
 QLoRA 训练目标仍然是 causal language modeling：给定图像 token、用户问题 token 和前文回答 token，预测 assistant JSON 的下一个 token。训练时 prompt 部分 label 被 mask，只对 assistant 的目标 JSON 计算 loss。
@@ -360,8 +357,8 @@ QLoRA 训练目标仍然是 causal language modeling：给定图像 token、用�
 python scripts/evaluate_chartqa.py \
   --manifest data/chartqa_eval/test_2500.jsonl \
   --backend qwen \
-  --model-path /root/LH/models/Qwen3-VL-4B-Instruct-original \
-  --adapter-path /root/LH/models/ChartGuard-Qwen3VL-4B-QLoRA \
+  --model-path ./models/Qwen3-VL-4B-Instruct-original \
+  --adapter-path ./models/ChartGuard-Qwen3VL-4B-QLoRA \
   --output outputs/chartqa_eval/qwen3vl_qlora_2500.jsonl \
   --summary-output outputs/chartqa_eval/qwen3vl_qlora_2500_summary.json \
   --retries 1 \
